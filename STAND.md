@@ -1,26 +1,34 @@
 # Stand — Übergabe für morgen
 
-*Zuletzt bearbeitet: 8. September 2026. Die vollständige Aufgabenliste steht in
+*Zuletzt bearbeitet: 14. November 2026. Die vollständige Aufgabenliste steht in
 [AUFGABEN.md](AUFGABEN.md); dieses Blatt ist nur der Faden zum Weitermachen.*
 
 ---
 
-## Zuerst: das Wichtigste
+## Neu am 14. November: Git, Mac-App, neue Richtung
 
-**Deine echten Daten sind womöglich noch nicht in deinem Browser.** Die Übernahme ist bisher
-nur im Vorschau-Browser getestet worden — steht bei dir noch „Isaac Newton, Galileo Galilei,
-Johannes Kepler …", dann passt es; stehen dort vier Beispiel-Personen, fehlt der Schritt noch.
+**Git.** Das Projekt ist jetzt versioniert und liegt auf GitHub: `Pauleeee/Zeitleistentool_ver2`.
 
-```bash
-cd "/Users/aph-admin/Documents/Zeitleiste zweiter Versuch" && python3 serve.py 8091
-```
+**Die Mac-App-Hülle steht.** `npm run tauri build` baut in gut einer Minute
+`src-tauri/target/release/bundle/macos/Zeitleiste.app` (~10 MB). Dafür:
+- Die Seite liegt jetzt in **`web/`** (index.html, css, js, data). `serve.py` liefert `web/` aus.
+- **Rust** ist über Homebrew installiert (`rustup`, keg-only). Damit `cargo`/`rustc` im Terminal
+  gefunden werden, gehört in `~/.bash_profile`:
+  `export PATH=/opt/homebrew/opt/rustup/bin:$PATH`
+- Das App-Fenster kennt die Browser-Dialoge nicht (`confirm` sagte stumm „Nein", Export legte
+  keine Datei ab). Neu: **`web/js/native.js`** — in der App echte Mac-Dialoge und
+  „Sichern unter …", im Browser alles wie vorher.
+- Die App hat ihren **eigenen Speicher**. Beim ersten Start stehen Beispiel-Daten drin →
+  ⋯ → „Aus altem Tool laden".
+- **Nicht in der App selbst geprüft**: die nativen Dialoge (ich konnte keinen Bildschirm
+  aufnehmen). Im Browser ist der Weg über `native.js` getestet.
 
-Dann [http://localhost:8091](http://localhost:8091) öffnen und im **⋯-Menü** auf
-**„Aus altem Tool laden"** klicken. Danach stehen 36 Personen und 43 Ereignisse drin.
-
-> Falls du im alten Tool seit dem 19. Juli weitergearbeitet hast: dort **⬇ Export**, hier
-> **⬆ Import** (ebenfalls im ⋯-Menü) — das ist der aktuellere Weg. Die Datei
-> `data/zeitleiste.json` ist der Stand vom 19. Juli.
+**Neue Richtung (Entscheidung des Nutzers):** Die App soll eine **Leinwand über den
+Anytype-Daten** werden, nicht ein zweites Datenhaltungs-Tool. Deshalb kommt **Phase B vor dem
+Rest von Phase A**: Quellen, Kategorien und Unterkategorien pflegt man dann in Anytype; die App
+merkt sich nur Anordnung, Aufklappen und Ansicht. Bestandsaufnahme in Anytype (14. Nov.):
+Space **„Insta"** hat schon die Typen **Buch** (Autor, Erschienen, Stichwörter, Verlag …) und
+**Autor**. Person, Ereignis und Beziehung gibt es noch nicht.
 
 ---
 
@@ -75,19 +83,14 @@ Pfeiltasten + Enter), die Ausgeblendetes gleich zurückholt.
 
 ## Wo ich weitermachen würde — in dieser Reihenfolge
 
-1. **Aufklapp-Pfeil auf der Leinwand.** Er ist in Weltkoordinaten gezeichnet (~10 Einheiten),
-   bei 50 % Zoom also rund 5 Bildschirmpixel, und bei Balken schmaler als 46 Einheiten wird er
-   gar nicht gezeichnet. Die Tastatur (`E`) trifft ihn jetzt immer — der Pfeil selbst sollte
-   aber konstante Größe bekommen wie die Beschriftungen.
-2. **Unterkategorien** (A1, letzter offener Punkt): `subcategoryIds`, Mehrfachauswahl, die
-   primäre bestimmt die Farbe (`getEntryColor`). Deine Daten bringen 12 mit, die im Panel noch
-   nirgends auftauchen. Land ist erledigt.
-3. **A4 — Quellen.** Der Kern des Buchnotizen-Tools und der größte fachliche Rest: `makeSource`,
-   `refs` (sourceId + Fundstelle + Notiz), Quellen-Ansicht mit Backlinks. Das Freitextfeld
-   `beleg` ist nur die Brücke dorthin und sollte beim Ausbau in echte `refs` überführt werden.
-4. **A2** (Kategorien verwalten), **A5** (Filter). Dann Phase B (Anytype) und C (Tauri).
-5. Verbindungs-**Typ** wählbar machen (`relation` diffus vs. `aktion` datiert) — neu gezogene
-   sind derzeit immer `aktion`.
+1. **Anytype-Struktur entwerfen** (B1, Entscheidungen des Nutzers): Typen Person (Geburt, Tod,
+   Land, Kategorie), Ereignis (Datum, optional Ende = Bereich, Person) und **Beziehung als
+   eigener Typ** (von, nach, Datum, Art, Buch + Seite) — eine einfache Anytype-Verknüpfung kann
+   weder Datum noch Fundstelle tragen. Danach Typen per MCP anlegen und die 36 Personen einmalig
+   hinüberkopieren.
+2. **Lese-Brücke** (B2/B3): API-Schlüssel in Anytype erzeugen, `web/js/anytype-import.js` hinter
+   `store.js`. In der Mac-App laufen die Anfragen über Rust, damit der Browser sie nicht blockiert.
+3. Erst danach, falls dann noch nötig: Aufklapp-Pfeil in fester Größe, Verbindungs-Typ, Filter.
 
 ---
 

@@ -6,7 +6,8 @@
 // Suche mit Sprung (⌘F), Beziehung aus dem Panel heraus. Die Leinwand bleibt die
 // Abkürzung für alle, die den Ort ohnehin schon kennen.
 import { seedData, byId, catName, fmtDate, getEntryColor, COUNTRIES } from './model.js';
-import { LocalStorageStore, exportJson, importJson, normalize } from './store.js';
+import { LocalStorageStore, importJson, normalize } from './store.js';
+import { frage, hinweis, exportiere } from './native.js';
 import { TimelineCanvas } from './timeline-canvas.js';
 import { History } from './history.js';
 import { parseDatum, parseZeile } from './parse.js';
@@ -80,14 +81,14 @@ function applyState(st) {
 
 // Einen von außen kommenden Datenstand übernehmen (Datei-Import oder altes Tool).
 // Ersetzt den aktuellen Stand vollständig; ⌘Z nimmt es zurück.
-function adopt(raw, herkunft) {
+async function adopt(raw, herkunft) {
   const d = normalize(raw);
   const personen = d.items.filter((i) => i.kind === 'person').length;
-  if (!d.items.length) { alert('Die Datei enthält keine Einträge.'); return; }
+  if (!d.items.length) { await hinweis('Die Datei enthält keine Einträge.'); return; }
   const text = `${herkunft}\n\n${personen} Personen · ${d.items.length - personen} Ereignisse/Bereiche · `
              + `${d.connections.length} Verbindungen · ${d.sources.length} Quellen\n\n`
              + 'Der aktuelle Stand wird ersetzt. ⌘Z macht es rückgängig.';
-  if (!confirm(text)) return;
+  if (!(await frage(text))) return;
   closeConnEditor();
   for (const k of Object.keys(data)) delete data[k];
   Object.assign(data, d);
@@ -327,7 +328,7 @@ btnConns.addEventListener('click', () => { tl.setShowConns(!tl.showConns); btnCo
 btnHidden.addEventListener('click', () => tl._select(null));
 document.getElementById('btn-addperson').addEventListener('click', quickOpen);
 document.getElementById('btn-addworld').addEventListener('click', () => { hintWeg(); tl.addWorldEvent(); });
-document.getElementById('btn-export').addEventListener('click', () => exportJson(tl.data, 'zeitleiste.json'));
+document.getElementById('btn-export').addEventListener('click', () => exportiere(tl.data, 'zeitleiste.json'));
 
 // Das ⋯-Menü schließt sich nach jeder Wahl und beim Klick daneben.
 const menu = document.getElementById('menu');
@@ -339,19 +340,19 @@ document.getElementById('btn-import').addEventListener('click', () => fileInput.
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files[0]; fileInput.value = '';
   if (!file) return;
-  try { adopt(await importJson(file), `Import: ${file.name}`); }
-  catch (err) { alert('Die Datei ließ sich nicht lesen:\n' + err.message); }
+  try { await adopt(await importJson(file), `Import: ${file.name}`); }
+  catch (err) { await hinweis('Die Datei ließ sich nicht lesen:\n' + err.message); }
 });
 
 document.getElementById('btn-adopt').addEventListener('click', async () => {
   try {
     const res = await fetch('data/zeitleiste.json');
     if (!res.ok) throw new Error(`data/zeitleiste.json: ${res.status}`);
-    adopt(await res.json(), 'Datenstand aus dem alten Tool (data/zeitleiste.json)');
-  } catch (err) { alert('Konnte data/zeitleiste.json nicht laden:\n' + err.message); }
+    await adopt(await res.json(), 'Datenstand aus dem alten Tool (data/zeitleiste.json)');
+  } catch (err) { await hinweis('Konnte data/zeitleiste.json nicht laden:\n' + err.message); }
 });
 document.getElementById('btn-seed').addEventListener('click', async () => {
-  if (!confirm('Alles verwerfen und Beispiel-Daten laden?')) return;
+  if (!(await frage('Alles verwerfen und Beispiel-Daten laden?'))) return;
   localStorage.removeItem(LAYOUT_KEY); localStorage.removeItem(VIEW_KEY); localStorage.removeItem(OPEN_KEY);
   await store.save(seedData()); location.reload();
 });
@@ -404,8 +405,8 @@ function renderInfo(it) {
       + `<div class="i-btns"><button id="m-hide" class="i-btn">Ausblenden (⌘D)</button></div>`
       + `<button class="i-del" id="m-del">Alle löschen</button>`;
     document.getElementById('m-hide').addEventListener('click', () => tl.hideSelected());
-    document.getElementById('m-del').addEventListener('click', () => {
-      if (!confirm(`${namen.length} Einträge löschen?`)) return;
+    document.getElementById('m-del').addEventListener('click', async () => {
+      if (!(await frage(`${namen.length} Einträge löschen?`))) return;
       for (const n of namen) deleteItem(n.id);
     });
     return;

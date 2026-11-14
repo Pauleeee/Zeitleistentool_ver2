@@ -15,7 +15,7 @@ import socketserver
 import sys
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8090
-DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 
 class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
@@ -27,6 +27,8 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 
 
 Handler = functools.partial(NoCacheHandler, directory=DIRECTORY)
+# Port nach einem Neustart sofort wieder belegen dürfen (sonst „Address already in use").
+socketserver.TCPServer.allow_reuse_address = True
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print(f"Zeitleiste läuft (ohne Cache): http://localhost:{PORT}")

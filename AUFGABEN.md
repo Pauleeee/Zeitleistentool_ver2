@@ -7,7 +7,7 @@ laut Absprache: **erst mindestens die Funktionalität des alten Tools erreichen,
 Anytype-Schnittstelle**.
 
 Projektordner: `~/Documents/Zeitleiste zweiter Versuch/`
-Start (Entwicklung): `python3 serve.py 8091` → http://localhost:8091
+Start (Entwicklung): `python3 serve.py 8091` → http://localhost:8091 · Mac-App: `npm run tauri dev` / `npm run tauri build`
 
 ---
 
@@ -93,6 +93,10 @@ Ein Wechsel auf „Bronze & Papier", hell oder dunkel ist damit ein Satz Variabl
 
 ## Phase A — Parität mit dem alten Tool
 
+> **Neu priorisiert am 14. November 2026:** Phase B (Anytype) kommt vor dem Rest von Phase A.
+> Quellen (A4), Kategorien (A2) und Unterkategorien pflegt man künftig in Anytype; was davon
+> in der App noch nötig ist, entscheidet sich erst, wenn die Anytype-Struktur steht.
+
 Reihenfolge grob nach Nutzen. Das Datenmodell ist da; Aufgaben = UI/Interaktion nachrüsten.
 
 ### A1 · Eintrag vollständig bearbeiten
@@ -122,6 +126,11 @@ Reihenfolge grob nach Nutzen. Das Datenmodell ist da; Aufgaben = UI/Interaktion 
       der Normalfall, weil die zweite Person oft noch gar nicht existiert.
 - [ ] Verbindungs-**Typ** (`relation` diffus vs. `aktion` datiert) noch nicht wählbar;
       neu gezogene Verbindungen sind immer `aktion`.
+
+### A3b · Bedienung auf der Leinwand
+- [ ] **Aufklapp-Pfeil** in konstanter Bildschirmgröße (wie die Beschriftungen). Heute in
+      Weltkoordinaten gezeichnet (~10 Einheiten, bei 50 % Zoom ≈ 5 px) und unter 46 Einheiten
+      Balkenbreite gar nicht (`web/js/timeline-canvas.js:404`). `E`/Leertaste trifft immer.
 
 ### A4 · Quellen (Kern des Buchnotizen-Tools!)
 - [ ] **Quellen verwalten** (`makeSource`, kontextuelle Felder je `kind`: Buch/Paper/Webseite …).
@@ -171,10 +180,14 @@ Neuladen verloren.
 
 ## Phase C — Echte Mac-App (Tauri) und danach iPhone
 
-- [ ] **Tauri v2** einrichten (Rust-Toolchain + Node); `src-tauri/`.
+- [x] **Tauri v2** einrichten (Rust über Homebrew-`rustup`, Tauri-CLI über npm); `src-tauri/`,
+      Seite nach `web/` verschoben.
+- [x] Browser-Dialoge ersetzt: `web/js/native.js` (native Rückfragen, „Sichern unter …").
 - [ ] **Datei-Store** statt localStorage (gleiche `load/save`-Schnittstelle; JSON, ggf. SQLite).
-- [ ] Native **Datei-Dialoge**, Fenster/Menü, App-Icon; **Fonts offline** einbetten.
-- [ ] `.app` bauen; (bei Weitergabe) Signierung/Notarisierung.
+- [ ] Datei-**Import** über nativen Dialog (Export ist schon nativ), Menü; **Fonts offline** einbetten.
+- [x] `.app` bauen (`npm run tauri build`, ~1 min, ~10 MB).
+- [ ] (Bei Weitergabe) Signierung/Notarisierung — braucht Apple-Developer-Account.
+- [ ] Eigenes App-Icon (derzeit das Tauri-Standard-Icon).
 - [ ] (Später, eigene Phase) **iOS-Ziel** + Touch-/Responsive-Pass für die Leinwand.
 
 ---
