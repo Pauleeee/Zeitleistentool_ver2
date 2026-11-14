@@ -1,12 +1,13 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "enables the default permissions",
+  "description": "Nur Rückfragen und Hinweise; Dateidialoge öffnet ausschließlich Rust.",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
-    "dialog:default"
+    "dialog:allow-ask",
+    "dialog:allow-message"
   ]
 }

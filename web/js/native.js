@@ -22,13 +22,9 @@ export async function hinweis(text) {
   await tauri.dialog.message(text, { title: 'Zeitleiste' });
 }
 
-/** Datenstand als JSON-Datei sichern — in der App mit „Sichern unter …"-Dialog. */
+/** Datenstand als JSON-Datei sichern — in der App mit „Sichern unter …"-Dialog.
+ *  Den Dialog öffnet Rust selbst (Befehl `exportieren`); die Seite gibt keinen Pfad vor. */
 export async function exportiere(data, dateiname = 'zeitleiste.json') {
   if (!tauri) { exportJson(data, dateiname); return; }
-  const pfad = await tauri.dialog.save({
-    defaultPath: dateiname,
-    filters: [{ name: 'JSON', extensions: ['json'] }],
-  });
-  if (!pfad) return;   // abgebrochen
-  await tauri.core.invoke('datei_schreiben', { pfad, inhalt: JSON.stringify(data, null, 2) });
+  await tauri.core.invoke('exportieren', { dateiname, inhalt: JSON.stringify(data, null, 2) });
 }

@@ -38,8 +38,12 @@ npm run tauri build   # → src-tauri/target/release/bundle/macos/Zeitleiste.app
 - Alles, was die Seite anzeigt, liegt in **`web/`** (= `frontendDist`). `src-tauri/` ist die Hülle.
 - **WKWebView kennt `alert`/`confirm`/Downloads nicht** — `alert` zeigt nichts, `confirm` sagt
   stumm „Nein". Rückfragen, Hinweise und Export laufen deshalb über **`web/js/native.js`**
-  (`frage`, `hinweis`, `exportiere`): in der App native Dialoge (`tauri-plugin-dialog` +
-  Rust-Befehl `datei_schreiben`), im Browser wie gehabt. **Nie direkt `alert`/`confirm` aufrufen.**
+  (`frage`, `hinweis`, `exportiere`): in der App native Dialoge (`tauri-plugin-dialog`),
+  im Browser wie gehabt. **Nie direkt `alert`/`confirm` aufrufen.**
+- **Sicherheit:** Den „Sichern unter“-Dialog öffnet **Rust** (Befehl `exportieren`) — die Seite
+  kann keinen Pfad vorgeben. JS darf nur `dialog:allow-ask`/`allow-message`. CSP in
+  `tauri.conf.json` blockiert fremde Skripte. In `app.js` geht **alles** aus den Daten nur über
+  `esc()` in `innerHTML` (auch IDs), Farben über `sichereFarbe()`. `serve.py` lauscht nur auf 127.0.0.1.
 - Die App hat **eigenen localStorage**, getrennt von Safari/Chrome. Daten kommen per
   „Aus altem Tool laden" oder Import hinein.
 

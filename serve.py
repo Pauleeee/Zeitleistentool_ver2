@@ -30,7 +30,7 @@ Handler = functools.partial(NoCacheHandler, directory=DIRECTORY)
 # Port nach einem Neustart sofort wieder belegen dürfen (sonst „Address already in use").
 socketserver.TCPServer.allow_reuse_address = True
 
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
+with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
     print(f"Zeitleiste läuft (ohne Cache): http://localhost:{PORT}")
     try:
         httpd.serve_forever()

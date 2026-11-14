@@ -117,7 +117,12 @@ function updateHidden() {
   if (!tl.selected && !tl.selConn) renderInfo(null);
 }
 
-function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+// Alles, was aus den Daten stammt, geht nur maskiert in innerHTML — auch IDs und Farben.
+// Daten kommen aus Import-Dateien und später aus Anytype; im App-Fenster wäre eingeschleuster
+// Code gefährlicher als im Browser.
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+// Nur echte Farbwerte (#rgb, #rrggbb, #rrggbbaa) durchlassen — sonst neutrales Grau.
+const sichereFarbe = (c) => (/^#[0-9a-f]{3,8}$/i.test(String(c)) ? c : '#64748b');
 const isContainer = (it) => it.kind === 'person' || (it.kind === 'event' && !it.personId);
 const jahre = (it) => it.end ? `${fmtDate(it.start)}–${fmtDate(it.end)}` : fmtDate(it.start);
 
@@ -423,15 +428,15 @@ function renderInfo(it) {
       + '<b>0</b> einpassen · <b>+ / −</b> zoomen · <b>E</b> aufklappen · <b>F</b> auf Auswahl · <b>Esc</b> zurück</div>';
     const hid = tl.hiddenPersons();
     if (hid.length) html += '<label>Ausgeblendet — klicken zum Zurückholen</label>'
-      + hid.map((h) => `<div class="i-hidden" data-id="${h.id}">↩ ${esc(h.title)} <span class="k">${esc(h.kind === 'person' ? '' : 'Ereignis')}</span></div>`).join('');
+      + hid.map((h) => `<div class="i-hidden" data-id="${esc(h.id)}">↩ ${esc(h.title)} <span class="k">${esc(h.kind === 'person' ? '' : 'Ereignis')}</span></div>`).join('');
     info.innerHTML = html;
     info.querySelectorAll('.i-hidden').forEach((elx) => elx.addEventListener('click', () => tl.restore(elx.getAttribute('data-id'))));
     return;
   }
-  const color = getEntryColor(it, data) || '#64748b';
+  const color = sichereFarbe(getEntryColor(it, data));
   const isPerson = it.kind === 'person';
   const editing = tl.editing === it.id;
-  const cats = data.categories.map((c) => `<option value="${c.id}" ${c.id === it.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+  const cats = data.categories.map((c) => `<option value="${esc(c.id)}" ${c.id === it.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
   const laender = COUNTRIES.map((l) => `<option value="${esc(l)}" ${l === it.land ? 'selected' : ''}>${esc(l)}</option>`).join('');
   const conns = data.connections.filter((c) => c.fromId === it.id || c.toId === it.id);
   const connLines = conns.map((c) => {
@@ -439,9 +444,9 @@ function renderInfo(it) {
     const dir = c.fromId === it.id ? '→' : '←';
     // Ohne fromDate nur das Zieldatum zeigen — fmtDate('') liefert sonst ein „?" davor.
     const bis = c.toDate || c.date;
-    const when = bis ? ` <span class="k">(${c.fromDate ? fmtDate(c.fromDate) + '→' : ''}${fmtDate(bis)})</span>` : '';
+    const when = bis ? ` <span class="k">(${c.fromDate ? esc(fmtDate(c.fromDate)) + '→' : ''}${esc(fmtDate(bis))})</span>` : '';
     const lbl = c.label || (c.relation && c.relation !== 'verbunden' ? c.relation : 'ohne Namen');
-    return `<div class="i-conn${tl.selConn === c.id ? ' on' : ''}" data-cid="${c.id}">${dir} ${esc(other ? other.title : '?')} <span class="k">${esc(lbl)}</span>${when} <span class="i-cdel" data-cid="${c.id}">✕</span></div>`;
+    return `<div class="i-conn${tl.selConn === c.id ? ' on' : ''}" data-cid="${esc(c.id)}">${dir} ${esc(other ? other.title : '?')} <span class="k">${esc(lbl)}</span>${when} <span class="i-cdel" data-cid="${esc(c.id)}">✕</span></div>`;
   }).join('') || '<div class="k">— keine —</div>';
 
   info.innerHTML =
