@@ -1,0 +1,327 @@
+/* Prototyp-Styles
+   Alle Farben der Leinwand liegen als Variablen in :root — ein späterer Wechsel des
+   Erscheinungsbilds („Bronze & Papier“, hell, dunkel) ist damit ein Satz Variablen
+   und keine Operation am JavaScript. */
+:root {
+  --tl-accent:      #b45309;   /* datierte Einfluss-Verbindungen, Bearbeiten-Griffe */
+  --tl-accent-hi:   #7c2d12;   /* hervorgehobene Verbindung */
+  --tl-accent-soft: #fffbeb;
+  --tl-relation:    #94a3b8;   /* diffuse Beziehung */
+  --tl-surface:     #ffffff;   /* Karten, Panel, Rauten-Füllung */
+  --tl-paper:       #f4f7fb;   /* Leinwand */
+  --tl-grid:        #e6ebf2;
+  --tl-band:        rgba(148,163,184,.055);
+  --tl-axis-bg:     rgba(255,255,255,.93);
+  --tl-axis-line:   #cbd5e1;
+  --tl-line:        #e8eef4;   /* Rahmen, Trenner */
+  --tl-text:        #1e293b;
+  --tl-text-mid:    #475569;
+  --tl-text-soft:   #94a3b8;
+  --tl-halo:        rgba(255,255,255,.85);   /* Kontursaum hinter Beschriftungen */
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  color: var(--tl-text); background: var(--tl-paper);
+  display: flex; flex-direction: column;
+}
+
+/* Kopfleiste */
+.topbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; background: var(--tl-surface); border-bottom: 1px solid var(--tl-line);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05); z-index: 2;
+}
+.topbar .brand { font-weight: 700; font-size: 1rem; }
+.topbar .badge {
+  font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tl-accent); background: var(--tl-accent-soft); border: 1px solid #fde68a; padding: 3px 8px; border-radius: 999px;
+}
+.topbar .spacer { flex: 1; }
+.topbar button {
+  border: 1.5px solid #e2e8f0; background: var(--tl-surface); color: var(--tl-text-mid);
+  border-radius: 8px; padding: 6px 12px; font-size: .8rem; font-weight: 500;
+  cursor: pointer; transition: border-color .12s, background .12s, color .12s;
+}
+.topbar button:hover { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+.topbar button.active { background: var(--tl-accent); border-color: var(--tl-accent); color: #fff; }
+
+/* Zoom-Bedienung */
+.zoomctl { display: flex; align-items: center; gap: 2px; }
+.zoomctl button { padding: 4px 9px; font-size: .9rem; line-height: 1; min-width: 28px; }
+.zoomctl #zoom-val {
+  font-size: .72rem; font-variant-numeric: tabular-nums; color: var(--tl-text-soft);
+  min-width: 46px; text-align: center;
+}
+
+/* Arbeitsbereich */
+.work { flex: 1; display: flex; min-height: 0; }
+.stage { flex: 1; min-width: 0; position: relative; }
+.hint {
+  position: absolute; left: 14px; bottom: 44px; z-index: 1;
+  font-size: .72rem; color: var(--tl-text-soft); background: rgba(255,255,255,.9);
+  border: 1px solid var(--tl-line); border-radius: 8px; padding: 6px 10px; max-width: 430px;
+  line-height: 1.55; pointer-events: none;
+}
+
+/* Info-Panel rechts */
+.info { width: 288px; flex-shrink: 0; background: var(--tl-surface); border-left: 1px solid var(--tl-line); padding: 16px 16px; overflow: auto; }
+.info .placeholder { color: #cbd5e1; font-size: .85rem; line-height: 1.6; }
+.info .i-kind { font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--tl-text-soft); }
+.info label { display: block; font-size: .62rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--tl-text-soft); margin: 12px 0 3px; }
+.info input, .info select, .info textarea {
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 7px; padding: 6px 9px;
+  font-size: .86rem; color: var(--tl-text); background: var(--tl-surface); font-family: inherit;
+}
+.info input:focus, .info select:focus, .info textarea:focus { outline: none; border-color: var(--tl-accent); box-shadow: 0 0 0 3px rgba(180,83,9,.12); }
+.info .i-2 { display: flex; gap: 8px; }
+.info .i-2 > div { flex: 1; }
+.info .i-chip { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: middle; margin-right: 5px; }
+.info .i-del { margin-top: 16px; width: 100%; border: 1.5px solid #fecaca; color: #b91c1c; background: var(--tl-surface); border-radius: 7px; padding: 7px; font-size: .8rem; cursor: pointer; }
+.info .i-del:hover { background: #fef2f2; }
+.info .i-conns { margin-top: 14px; font-size: .8rem; color: var(--tl-text-mid); line-height: 1.7; }
+.info .i-conns .k { color: var(--tl-text-soft); }
+
+/* ── SVG-Leinwand ─────────────────────────────────────────────────────────
+   Drei Ebenen: gBack (Bildschirm, hinten) · gWorld (transformiert) · gUI (Bildschirm, vorn).
+   Beschriftungen liegen in gUI und skalieren deshalb NICHT mit dem Zoom mit. */
+.tl-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; user-select: none; }
+.stage:active .tl-svg { cursor: grabbing; }
+.tl-conns, .tl-pending, .tl-pending-dot { pointer-events: none; }
+/* … die dicke, unsichtbare Trefferfläche über jeder Linie aber schon: sonst ließe sich
+   eine Verbindung nicht anklicken (das war der Grund, warum sie „tot“ wirkte). */
+.tl-conns .tl-conn-hit { pointer-events: stroke; cursor: pointer; }
+.tl-back { pointer-events: none; }
+.tl-back .tl-bg { pointer-events: auto; }
+.tl-ui { pointer-events: none; }
+
+/* Hintergrund: Jahrhundert-Bänder und Raster */
+.tl-band { fill: var(--tl-band); }
+.tl-grid { stroke: var(--tl-grid); stroke-width: 1; }
+
+/* Klebende Jahresleiste unten */
+.tl-axisbar { fill: var(--tl-axis-bg); }
+.tl-axisline { stroke: var(--tl-axis-line); stroke-width: 1; }
+.tl-tick { stroke: var(--tl-axis-line); stroke-width: 1; }
+.tl-yr { fill: var(--tl-text-soft); font: 500 11px system-ui, sans-serif; text-anchor: middle; }
+
+/* Randhinweise „← 3 weitere · 1643–1727“ */
+.tl-edge-chip { pointer-events: auto; cursor: pointer; }
+.tl-edge-chip rect { fill: var(--tl-surface); stroke: var(--tl-line); stroke-width: 1; }
+.tl-edge-chip text { fill: var(--tl-text-mid); font: 500 9.5px system-ui, sans-serif; }
+.tl-edge-chip:hover rect { stroke: var(--tl-accent); }
+.tl-edge-chip:hover text { fill: var(--tl-accent); }
+
+/* Balken */
+.tl-item.dim { opacity: .28; }
+.tl-bar { cursor: crosshair; }
+.tl-bar-bg { stroke-width: 1.5; }
+.tl-item.sel .tl-bar-bg { stroke-width: 2.5; }
+.tl-item.edit .tl-bar-bg { stroke-dasharray: 4 3; }
+.tl-resize { fill: var(--tl-accent); fill-opacity: .9; stroke: #fff; stroke-width: 1; cursor: ew-resize; }
+.tl-move { opacity: .4; cursor: ns-resize; transition: opacity .1s; }
+.tl-bar:hover .tl-move { opacity: .95; }
+
+/* Ereignisse und Bereiche IM Balken (siehe Skizze)
+   Bereich  = eingefärbte Säule über die volle Balkenhöhe
+   Ereignis = senkrechte Linie über die volle Balkenhöhe
+   beide mit Andockpunkt auf der Unterkante */
+.tl-kid { cursor: grab; }
+.tl-kid-edge { stroke-width: 1.2; stroke-opacity: .8; pointer-events: none; }
+.tl-kid-dot  { pointer-events: none; }
+.tl-kid-hit  { stroke: transparent; stroke-width: 10; pointer-events: stroke; }
+.tl-kid.sel .tl-kid-edge { stroke-width: 2.4; stroke-opacity: 1; }
+.tl-kid.sel .tl-kid-fill { fill-opacity: .55; }
+.tl-kid-ear { fill: var(--tl-accent); stroke: #fff; stroke-width: 1; cursor: ew-resize; }
+.tl-expand { cursor: pointer; opacity: .45; transition: opacity .12s; }
+.tl-bar:hover .tl-expand, .tl-item.sel .tl-expand { opacity: 1; }
+
+/* Aufgeklappter Körper (Bildschirmebene, konstante Größe) */
+.tl-body-line, .tl-body-item, .tl-body-leer {
+  paint-order: stroke fill; stroke: var(--tl-halo); stroke-width: 3px; stroke-linejoin: round;
+}
+.tl-body-line { fill: var(--tl-text-mid); font: 400 10.5px system-ui, sans-serif; }
+.tl-body-leer { fill: #cbd5e1; font: italic 10.5px system-ui, sans-serif; }
+.tl-body-item { fill: var(--tl-text-soft); font: 500 10px system-ui, sans-serif; }
+
+/* Ausweichende Nachbarn gleiten, statt zu springen — nur während der Bewegung aktiv,
+   damit Ziehen, Pannen und Zoomen nicht nachlaufen. */
+.tl-bars.anim .tl-item { transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+
+/* Beschriftungen (Bildschirmebene, konstante Größe).
+   Der Kontursaum hält sie auch über Linien und Bändern lesbar. */
+.tl-bar-title, .tl-bar-sub, .tl-ev-lbl, .tl-conn-lbl {
+  paint-order: stroke fill; stroke: var(--tl-halo); stroke-width: 3px; stroke-linejoin: round;
+}
+.tl-bar-title { fill: var(--tl-text); font: 600 12.5px system-ui, sans-serif; }
+.tl-bar-sub { fill: var(--tl-text-soft); font: 500 9.5px system-ui, sans-serif; }
+.tl-ev-lbl { fill: var(--tl-text-mid); font: 500 9.5px system-ui, sans-serif; }
+.tl-conn-lbl { fill: var(--tl-accent); font: italic 9.5px system-ui, sans-serif; }
+.tl-lbl-chip { fill: var(--tl-axis-bg); }
+
+/* Verbindungen */
+.tl-conn { fill: none; stroke-width: 1.8; }
+.tl-conn.aktion { stroke: var(--tl-accent); }
+.tl-conn.relation { stroke: var(--tl-relation); }
+.tl-conn.hi { stroke: var(--tl-accent-hi); stroke-width: 2.4; }
+.tl-conn.dim { opacity: .15; }
+.tl-conn.sel { stroke: var(--tl-accent-hi); stroke-width: 3; }
+.tl-conn-hit { fill: none; stroke: transparent; stroke-width: 14; }
+.tl-conns:hover .tl-conn-hit:hover + .tl-land, .tl-conn-hit:hover { stroke: rgba(180,83,9,.10); }
+
+/* Jahresanzeige am Cursor beim Ziehen einer Verbindung */
+.tl-readout-bg { fill: var(--tl-accent); }
+.tl-readout { fill: #fff; font: 600 10px system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.tl-land { fill: var(--tl-accent); }
+.tl-land.hi { fill: var(--tl-accent-hi); }
+.tl-land.dim { opacity: .15; }
+.tl-pending { fill: none; stroke: var(--tl-accent); stroke-width: 2; stroke-dasharray: 5 4; }
+.tl-pending-dot { fill: var(--tl-accent); }
+.tl-mk-inf { fill: var(--tl-accent); }
+.tl-mk-hi  { fill: var(--tl-accent-hi); }
+.tl-mk-rel { fill: var(--tl-relation); }
+
+/* Info-Panel: Buttons, Ausgeblendet-Liste, Beziehungen */
+.info .i-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.info .i-btn, .info .i-btn-ok { border: 1.5px solid #e2e8f0; background: var(--tl-surface); color: var(--tl-text-mid);
+  border-radius: 7px; padding: 6px 10px; font-size: .78rem; cursor: pointer; }
+.info .i-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.info .i-btn-ok { border-color: var(--tl-accent); color: var(--tl-accent); background: var(--tl-accent-soft); }
+.info .i-hidden { padding: 6px 8px; margin-top: 4px; border: 1px solid var(--tl-line); border-radius: 7px;
+  font-size: .84rem; color: #334155; cursor: pointer; }
+.info .i-hidden:hover { background: #f8fafc; border-color: #cbd5e1; }
+.info .i-conn { display: flex; align-items: center; gap: 4px; }
+.info .i-cdel { margin-left: auto; color: #cbd5e1; cursor: pointer; font-size: .8rem; padding: 0 4px; }
+.info .i-cdel:hover { color: #b91c1c; }
+
+/* ── Schnellerfassung, Suche, Menü, Beziehungs-Feld ───────────────────────
+   Alles, was die Hürde bei der Eingabe senkt: ein Textfeld statt Zielen auf der
+   Leinwand, ein Suchfeld statt Wandern, ein Benennen-Feld direkt an der Linie. */
+
+/* Werkzeugleiste: die häufigste Handlung sichtbar hervorheben */
+.topbar button.primary {
+  border-color: var(--tl-accent); background: var(--tl-accent); color: #fff; font-weight: 600;
+}
+.topbar button.primary:hover { background: var(--tl-accent-hi); border-color: var(--tl-accent-hi); color: #fff; }
+
+/* ⋯-Menü: seltene und gefährliche Befehle aus der ersten Reihe nehmen */
+.menu { position: relative; }
+.menu > summary {
+  list-style: none; cursor: pointer; user-select: none;
+  border: 1.5px solid #e2e8f0; background: var(--tl-surface); color: var(--tl-text-mid);
+  border-radius: 8px; padding: 6px 12px; font-size: .8rem; line-height: 1.2;
+}
+.menu > summary::-webkit-details-marker { display: none; }
+.menu > summary:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.menu[open] > summary { background: #f1f5f9; border-color: #cbd5e1; }
+.menu-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 5;
+  background: var(--tl-surface); border: 1px solid var(--tl-line); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,23,42,.13); padding: 6px; min-width: 210px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.menu-pop button {
+  border: none !important; background: none; text-align: left; width: 100%;
+  padding: 7px 10px; border-radius: 6px; font-size: .8rem; color: var(--tl-text-mid); cursor: pointer;
+}
+.menu-pop button:hover { background: #f1f5f9; }
+.menu-pop button.gefahr { color: #b91c1c; }
+.menu-pop button.gefahr:hover { background: #fef2f2; }
+.menu-pop hr { border: none; border-top: 1px solid var(--tl-line); margin: 4px 2px; }
+
+/* Suche mit Sprung — bei 36 Personen über 1500 Jahre keine Bequemlichkeit mehr */
+.search { position: relative; }
+.search input {
+  width: 170px; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 10px;
+  font-size: .8rem; font-family: inherit; color: var(--tl-text); background: var(--tl-surface);
+}
+.search input:focus { outline: none; border-color: var(--tl-accent); box-shadow: 0 0 0 3px rgba(180,83,9,.12); }
+.search-res {
+  position: absolute; left: 0; top: calc(100% + 6px); z-index: 6; width: 300px;
+  background: var(--tl-surface); border: 1px solid var(--tl-line); border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15,23,42,.13); padding: 5px; max-height: 340px; overflow: auto;
+}
+.search-res .r {
+  padding: 6px 9px; border-radius: 6px; font-size: .8rem; color: var(--tl-text-mid);
+  cursor: pointer; display: flex; align-items: baseline; gap: 7px;
+}
+.search-res .r:hover, .search-res .r.on { background: var(--tl-accent-soft); color: var(--tl-text); }
+.search-res .r .jahr { margin-left: auto; font-size: .7rem; color: var(--tl-text-soft); font-variant-numeric: tabular-nums; }
+.search-res .leer { padding: 8px 9px; font-size: .78rem; color: var(--tl-text-soft); }
+
+/* Schnellerfassung: eine Zeile statt Zielen, Zoomen und Nachtippen */
+.quick {
+  position: absolute; left: 50%; top: 26px; transform: translateX(-50%); z-index: 4;
+  width: min(520px, calc(100% - 48px));
+  background: var(--tl-surface); border: 1px solid var(--tl-line); border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(15,23,42,.16); padding: 12px 14px 11px;
+}
+.quick label {
+  display: block; font-size: .62rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--tl-text-soft); margin-bottom: 5px;
+}
+.quick input {
+  width: 100%; border: none; border-bottom: 1.5px solid var(--tl-line); border-radius: 0;
+  padding: 4px 0 7px; font-size: 1rem; font-family: inherit; color: var(--tl-text); background: none;
+}
+.quick input:focus { outline: none; border-bottom-color: var(--tl-accent); }
+.quick-echo { margin-top: 8px; font-size: .74rem; color: var(--tl-text-soft); min-height: 1.1em; line-height: 1.4; }
+.quick-echo b { color: var(--tl-accent); font-weight: 600; }
+
+/* Benennen-Feld einer Verbindung — sitzt an der Linie, nicht irgendwo */
+.cedit {
+  position: absolute; z-index: 5; width: 268px;
+  background: var(--tl-surface); border: 1px solid var(--tl-line); border-radius: 11px;
+  box-shadow: 0 12px 32px rgba(15,23,42,.17); padding: 12px 13px;
+}
+.cedit .c-kopf { font-size: .75rem; color: var(--tl-text-mid); line-height: 1.5; margin-bottom: 9px; }
+.cedit .c-kopf b { color: var(--tl-text); }
+.cedit .c-pfeil { color: var(--tl-accent); font-weight: 700; }
+.cedit label {
+  display: block; font-size: .6rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--tl-text-soft); margin: 9px 0 4px;
+}
+.cedit input {
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 7px; padding: 6px 8px;
+  font-size: .82rem; font-family: inherit; color: var(--tl-text); background: var(--tl-surface);
+}
+.cedit input:focus { outline: none; border-color: var(--tl-accent); box-shadow: 0 0 0 3px rgba(180,83,9,.12); }
+.c-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.c-chip {
+  border: 1.5px solid #e2e8f0; background: var(--tl-surface); color: var(--tl-text-mid);
+  border-radius: 999px; padding: 3px 9px; font-size: .72rem; cursor: pointer; font-family: inherit;
+}
+.c-chip:hover { border-color: #cbd5e1; background: #f8fafc; }
+.c-chip.on { border-color: var(--tl-accent); background: var(--tl-accent-soft); color: var(--tl-accent); font-weight: 600; }
+.c-2 { display: flex; gap: 8px; }
+.c-2 > div { flex: 1; }
+.c-btns { display: flex; gap: 6px; margin-top: 12px; align-items: center; }
+.c-btns button {
+  border: 1.5px solid #e2e8f0; background: var(--tl-surface); color: var(--tl-text-mid);
+  border-radius: 7px; padding: 6px 11px; font-size: .78rem; cursor: pointer; font-family: inherit;
+}
+.c-btns button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.c-btns .c-ok { border-color: var(--tl-accent); background: var(--tl-accent); color: #fff; font-weight: 600; }
+.c-btns .c-ok:hover { background: var(--tl-accent-hi); border-color: var(--tl-accent-hi); color: #fff; }
+.c-btns .c-del { margin-left: auto; border-color: #fecaca; color: #b91c1c; }
+.c-btns .c-del:hover { background: #fef2f2; border-color: #fca5a5; }
+
+/* Hinweis-Kasten: wegklickbar, und nach dem ersten eigenen Eintrag von selbst weg */
+.hint-x {
+  position: absolute; top: 3px; right: 4px; pointer-events: auto;
+  border: none; background: none; color: var(--tl-text-soft); cursor: pointer;
+  font-size: .8rem; line-height: 1; padding: 3px 4px; border-radius: 4px;
+}
+.hint-x:hover { background: #f1f5f9; color: var(--tl-text-mid); }
+.hint { padding-right: 24px; }
+
+/* Panel: Beziehungen anklickbar, Quellenzeile, Datumsfeld mit Rückmeldung */
+.info .i-conn { cursor: pointer; border-radius: 6px; padding: 2px 4px; margin: 0 -4px; }
+.info .i-conn:hover { background: var(--tl-accent-soft); }
+.info .i-conn.on { background: var(--tl-accent-soft); }
+.info input.bad { border-color: #fca5a5; box-shadow: 0 0 0 3px rgba(239,68,68,.10); }
+.info .i-warn { font-size: .7rem; color: #b91c1c; margin-top: 3px; }
+.info .i-note { font-size: .7rem; color: var(--tl-text-soft); margin-top: 3px; }
+.info .i-sub { font-size: .7rem; color: var(--tl-text-soft); margin-top: 3px; line-height: 1.45; }
