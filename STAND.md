@@ -81,13 +81,50 @@ Pfeiltasten + Enter), die Ausgeblendetes gleich zurückholt.
 
 ---
 
+## Anytype-Probe (14. November): Space „Zeitleiste Test"
+
+Entscheidungen des Nutzers: Ziel-Space ist **„Insta"** (dort liegen die Bücher; Anytype verknüpft
+nur innerhalb eines Space). **Person** ist ein eigener Typ, **Autor** bleibt wie er ist. Der
+Bestand wird übernommen — zuerst probeweise in den separaten Space **„Zeitleiste Test"**.
+
+Dort liegt jetzt der komplette Stand vom 19. Juli: **36 Personen, 43 Ereignisse, 3 Beziehungen,
+3 Bücher, 3 Autoren** (Rückverweise geprüft, z. B. „Power" ← 11 Einträge).
+
+| Typ | Felder |
+|---|---|
+| Person 👤 | Geboren, Gestorben (Datum) · Zeitangabe (Text) · Land, Kategorie (Auswahl) · Themen (Mehrfach) · Quelle (→ Buch) · Seite · Beschreibung = Text des Objekts |
+| Ereignis 📍 | Beginn, Ende (Datum; Ende leer = Ereignis, gefüllt = Bereich) · Zeitangabe · **Person** (→ Person, leer = freistehend) · Land, Kategorie, Themen, Quelle, Seite |
+| Beziehung 🔗 | Von, Nach (→ Person/Ereignis) · Art (las, Lehrer von, kannte, beeinflusst, bezieht sich auf, gerichtet an, verbunden) · Datum · Zeitangabe · Quelle, Seite |
+| Buch 📖 / Autor ✍️ | wie in „Insta" (Autor, Erschienen, Verlag, ISBN) |
+
+Kategorien und Themen tragen **Anytype-Farben** (Wissenschaft blau, Politik rot, Kunst orange,
+Natur lime, Gesellschaft lila, Wirtschaft ice) — die App kann sie für die Balken übernehmen.
+
+**Datumstest** (per API, Testseiten danach gelöscht):
+- `1643-01-04` und `0800-12-25` kommen unverändert zurück.
+- **v. Chr. wird abgelehnt** (`invalid date format`).
+- Ein **reines Jahr** kennt Anytype nicht — nur ganze Tage.
+
+Daraus die Regel: **Datumsfeld** (sortierbar) **plus optionale „Zeitangabe"** als Text, die nur
+gefüllt ist, wenn das Datum ungenau ist oder noch läuft (`1400 – 1468`, `2019-12 – 2023-05`,
+`1954-07-17 – heute`). Die App liest die Zeitangabe zuerst (mit `parseDatum`), sonst die
+Datumsfelder. Ungenaue Jahre stehen im Datumsfeld als 1. Januar.
+
+**Beim Übertragen bereinigt:** Giulio de' Medici „1478-05-56" → 26. Mai; Thomas Bayes
+„1761-04-1761" → Zeitangabe „1701 – 1761"; „100 Tage Herrschaft" Ende „1815" lag vor dem Beginn →
+Datumsfeld 31.12.1815, Zeitangabe „1815-03-20 – 1815".
+
+**Aufgefallen, offen für den Nutzer:** viele gleichnamige Einträge („Bundeskanzler" ×10,
+„König von Frankreich" ×3) sind in Anytype-Listen schwer zu unterscheiden; „brenton Wood"
+(= Bretton Woods), „Oberbürgermeiseter"; Autor „Gabor, Steinhart" (in „Insta": „Steingart, Babor").
+Im Space liegt noch die Test-Eigenschaft „Testdatum".
+
+---
+
 ## Wo ich weitermachen würde — in dieser Reihenfolge
 
-1. **Anytype-Struktur entwerfen** (B1, Entscheidungen des Nutzers): Typen Person (Geburt, Tod,
-   Land, Kategorie), Ereignis (Datum, optional Ende = Bereich, Person) und **Beziehung als
-   eigener Typ** (von, nach, Datum, Art, Buch + Seite) — eine einfache Anytype-Verknüpfung kann
-   weder Datum noch Fundstelle tragen. Danach Typen per MCP anlegen und die 36 Personen einmalig
-   hinüberkopieren.
+1. **Struktur im Space „Zeitleiste Test" ansehen** (Nutzer) und anpassen; danach dieselbe
+   Struktur in **„Insta"** anlegen und den Bestand dorthin übertragen.
 2. **Lese-Brücke** (B2/B3): API-Schlüssel in Anytype erzeugen, `web/js/anytype-import.js` hinter
    `store.js`. In der Mac-App laufen die Anfragen über Rust, damit der Browser sie nicht blockiert.
 3. Erst danach, falls dann noch nötig: Aufklapp-Pfeil in fester Größe, Verbindungs-Typ, Filter.

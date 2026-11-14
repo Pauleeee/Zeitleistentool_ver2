@@ -167,7 +167,9 @@ Neuladen verloren.
 
 ## Phase B — Anytype-Schnittstelle
 
-- [ ] **Struktur in Anytype festlegen** (gemeinsam): Typen `Person`, `Ereignis`, `Beziehung`,
+- [~] **Struktur in Anytype festlegen** (gemeinsam) — Entwurf steht im Space „Zeitleiste Test“ mit dem
+      kompletten Bestand (siehe STAND.md); noch nicht in „Insta“ übernommen.
+      Ursprünglich:: Typen `Person`, `Ereignis`, `Beziehung`,
       `Quelle` mit Feldern (Geburt/Tod, Datum, Kategorie, from/to + Datum, Seite/Notiz …).
 - [ ] **Pairing** mit Anytype-App (App-Key), lokale API erreichbar (Anytype-MCP ist auf dem Mac da).
 - [ ] **Import-Adapter** (`js/anytype-import.js`): liest die Struktur, mappt auf `model.js`
